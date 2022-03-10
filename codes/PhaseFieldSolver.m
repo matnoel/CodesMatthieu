@@ -49,21 +49,18 @@ switch solver
         d = A_phase\b_phase;            
     otherwise
         d0 = freevector(S_phase,d);
+        lb = d0;
+        lb(lb==1) = 1-eps;
         ub = ones(size(d0));
-        if isequal(d0,ub)
-            d = d0;
-        else
-            lb = d0;
-            switch optimFun
-                case 'lsqlin'
-                    [d,err,~,exitflag,output] = lsqlin(A_phase,b_phase,[],[],[],[],lb,ub,d0,options);
-                case 'lsqnonlin'
-                    fun = @(d) funlsqnonlinPF(d,A_phase,b_phase);
-                    [d,err,~,exitflag,output] = lsqnonlin(fun,d0,lb,ub,options);
-                case 'fmincon'
-                    fun = @(d) funoptimPF(d,A_phase,b_phase);
-                    [d,err,exitflag,output] = fmincon(fun,d0+eps,[],[],[],[],lb,ub,[],options);
-            end
+        switch optimFun
+            case 'lsqlin'
+                [d,err,~,exitflag,output] = lsqlin(A_phase,b_phase,[],[],[],[],lb,ub,d0,options);
+            case 'lsqnonlin'
+                fun = @(d) funlsqnonlinPF(d,A_phase,b_phase);
+                [d,err,~,exitflag,output] = lsqnonlin(fun,d0,lb,ub,options);
+            case 'fmincon'
+                fun = @(d) funoptimPF(d,A_phase,b_phase);
+                [d,err,exitflag,output] = fmincon(fun,d0+eps,[],[],[],[],lb,ub,[],options);
         end
 end 
 
