@@ -1,39 +1,38 @@
-function [] = BenchmarkCompressionTest(solver, PFmodel, alpha)
+% function [] = BenchmarkCompressionTest(solver, split, regularization)
 
 %% Benchmark Compression test %%
 % [Nguyen, Yvonnet, Waldmann, He, 2020, IJNME]
 
-% % clc
-% clearvars
-% close all
-
+% clc
+clearvars
+close all
 
 postTraitement = false;
 
 test = true;
 % test = false;
 
+setProblem = true;
+solve = true;
+plotResults = true;
+saveParaview = false;
+
 if postTraitement
     setProblem = false;
     solve = false;
     plotResults = true;
     saveParaview = false;
-else
-    setProblem = true;
-    solve = true;
-    plotResults = true;
-    saveParaview = false;
 end
 
-display = false;
+display = true;
 
 %% Model
 
-% solver = 'HistoryField'; % 'HistoryField' or 'BoundConstrainedOptim'
-% PFmodel = 'AnisotropicMiehe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
-% alpha = 'AT1'; %'AT1', 'AT2'
+solver = 'HistoryField'; % 'HistoryField' or 'BoundConstrainedOptim'
+split = 'AnisotropicMiehe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
+regularization = 'AT1'; %'AT1', 'AT2'
 
-filename = append('BenchmarkCompressionTest_',PFmodel,'_', alpha,'_',solver);
+filename = append('BenchmarkCompressionTest_',solver,'_', split,'_',regularization);
 
 if test
     filename = append(filename,'_Test');
@@ -48,45 +47,45 @@ end
 
 if setProblem
 
-    %% Datas 
+    %% Datas Geo
     % [Nguyen, Yvonnet, Waldmann, He, 2020,IJNME]
     
     DIM = 2;
     
-    height = 30e-3; %[m]
-    width = 15e-3;
+    h = 30e-3; %[m]
+    L = 15e-3;
     ep = 1;   
     
-    holeHeight = height/2; %hauteur trou
     holeDiameter = 12e-3/2;   %diam trou   
     
-    
-    %% Création du modèle et maillage  
-
-    if test
-        cl = 0.25e-3;
-        clH = 0.12e-3;
-    else
-        cl = l_0/2;
-        clH = cl;
-    end    
-    
-    domain = DOMAIN(2,[0,0],[width,height]);
-    circle = CIRCLE(width/2,height-holeHeight,holeDiameter/2);
-    
-    model = gmshdomainwithhole(domain,circle,cl,clH,fullfile(pathname,'gmshDomainWithHoleBenchmark'));
-        
-    %% Modele a gradient d'endommagement
+    %% Datas Phase Field
     
     gc = 1.4;   % Taux de libération d'énergie critique (ou ténacité à la rupture) [N/m]
     l_0 = 0.12e-3; % Paramètre de régularisation (largeur de la fissure)
     
+    %% Création du modèle et maillage  
+
+    clD = l_0/2;
+    clC = clD;
+
+    if test
+        clD = 0.25e-3;
+        clC = 0.12e-3;
+    end
+
+    domain = DOMAIN(2,[0,0],[L,h]);
+    circle = CIRCLE(L/2,h/2,holeDiameter/2);
+    
+    model = gmshdomainwithhole(domain,circle,clD,clC,fullfile(pathname,'gmshDomainWithHoleBenchmark'));
+        
+    %% Modele a gradient d'endommagement  
+    
     g = @(d) (1-d).^2;  % Fonction degradation energetique    
     
-    PF_problem = PF_Problem(solver, PFmodel, alpha, gc, l_0);
+    PFM = PhaseFieldModel(solver, split, regularization, gc, l_0);
     
     % Materiau
-    mat_phase = FOUR_ISOT('k',PF_problem.k,'r',PF_problem.r(0));
+    mat_phase = FOUR_ISOT('k',PFM.k,'r',PFM.r(0));
     mat_phase = setnumber(mat_phase,1);
 
     % Attribu le matériau
@@ -95,10 +94,9 @@ if setProblem
     % ici pas besoin de de renseigner des conditions limite car pas de fissure preexitante
     S_phase = final(S_phase);
     
-    PF_problem.S_phase = S_phase;
+    PFM.S_phase = S_phase;
     
-    d = calc_init_dirichlet(S_phase);
-    
+    d = calc_init_dirichlet(S_phase);    
     
     %% Modele deformation elastique
     
@@ -107,56 +105,55 @@ if setProblem
     E = 12e9;
     NU = 0.3;
             
-    mat = ELAS_ISOT('E',E,'NU',NU,'RHO',RHO,'DIM3',ep,'d',d,'g',g,'k',k,'u',0,'PFM',PFmodel);
+    mat = ELAS_ISOT('E',E,'NU',NU,'RHO',RHO,'DIM3',ep,'d',d,'g',g,'k',k,'u',0,'PFM',split);
     
     mat = setnumber(mat,1);
     
     S = setoption(model,'DEFO');
     S = setmaterial(S,mat);
     
-    PF_problem.S = S;
-    
     %% Conditions en déplacement
     
-    BLower = LIGNE([0, 0],[width, 0]);
-    BUpper = LIGNE([0, height],[width, height]);
-    Bgauche = LIGNE([0, 0], [0, height]); 
-    Bdroite = LIGNE([width, 0], [width, height]);   
+    BLower = LIGNE([0, 0],[L, 0]);
+    BUpper = LIGNE([0, h],[L, h]);
+    BLeft = LIGNE([0, 0], [0, h]); 
+    BRight = LIGNE([L, 0], [L, h]);   
     
     [~, loadNodes] = intersect(S,BUpper);
     
     % Get the nodes on the egdes
     [~,noeudsBLower] = intersect(S, BLower);
     [~,noeudsBUpper] = intersect(S, BUpper);
-    [~,noeudsBGauche] = intersect(S, Bgauche);
-    [~,noeudsBDroite] = intersect(S, Bdroite);
-    noeudsDuBord = [noeudsBGauche; noeudsBDroite; noeudsBLower; noeudsBUpper];
+    [~,noeudsBLeft] = intersect(S, BLeft);
+    [~,noeudsBRight] = intersect(S, BRight);
+    noeudsDuBord = [noeudsBLeft; noeudsBRight; noeudsBLower; noeudsBUpper];
     
     S = final(S);
-    PF_problem.DirichletBoundaryConditions{1} = {BLower, 'UY', 0};
-    PF_problem.DirichletBoundaryConditions{2} = {[0,0], 'UX', 0};
+    PFM.DirichletBoundaryConditions{1} = {BLower, 'UY', 0};
+    PFM.DirichletBoundaryConditions{2} = {[0,0], 'UX', 0};
     
-    S = ApplyDirichletBoundaryConditions(S, PF_problem.DirichletBoundaryConditions);
+    S = ApplyDirichletBoundaryConditions(S, PFM.DirichletBoundaryConditions);
+
+    PFM.S = S;
     
     % plot(S,'numnode')
     
     %% Chargement
     
-    uIncBig = 8e-8;   %[m] step d<=0.6
-    uIncSmall = 2e-8;   % step d>0.6
+    bigInc = 8e-8;   %[m] step d<=0.6
+    smallInc = 2e-8;   % step d>0.6
     maxDep = 25e-6; % 25 µm
 
-    if test
-        % maxDep = 14e-6;        
-        uIncBig = 16e-8;
-        uIncSmall = 4e-8;
+    if test     
+        bigInc = 16e-8;
+        smallInc = 4e-8;
     end
     
-    save(fullfile(pathname,'problem.mat'), 'PF_problem');
+    save(fullfile(pathname,'problem.mat'), 'PFM');
 else
     load(fullfile(pathname,'problem.mat'));    
-    S = PF_problem.S;
-    S_phase = PF_problem.S_phase;
+    S = PFM.S;
+    S_phase = PFM.S_phase;
 end
 
 %% Resolution
@@ -167,11 +164,11 @@ if solve
     H = calc_energyint(S,u,'positive','intorder','mass');
     
     if display
-        PF_problem
+        PFM
         fprintf('\n')
-        fprintf('+--------+--------+----------+----------+---------------+\n');
-        fprintf('|  Iter  | u [µm] |  min(d)  |  max(d)  |   t [h:m:s]   |\n');
-        fprintf('+--------+--------+----------+----------+---------------+\n');
+        fprintf('+--------+--------+----------+----------+-------------+\n');
+        fprintf('|  Iter  | u [µm] |  min(d)  |  max(d)  |  t [h:m:s]  |\n');
+        fprintf('+--------+--------+----------+----------+-------------+\n');
     end
     
     ud=0;
@@ -185,20 +182,23 @@ if solve
         i = i+1;
         
         if any(d > 0.6)
-            uInc = uIncSmall;
+            uInc = smallInc;
         else
-            uInc = uIncBig;
+            uInc = bigInc;
         end        
         
         % inc load
         ud = ud + uInc;
         ud_t(i) = -ud;
-        PF_problem.DirichletBoundaryConditions{3} = {loadNodes, 'UY', -ud};
+        PFM.DirichletBoundaryConditions{3} = {loadNodes, 'UY', -ud};
         
         % resolution
         tSolve = tic;
-        [u,d,A,H] =  PhaseFieldSolver(S_phase, S, i, PF_problem, H, u, d);
+        [u,d,A,H,PFM] =  PhaseFieldSolver(i, PFM, H, u, d);
         
+        S = PFM.S;
+        S_phase = PFM.S_phase;
+
         % Force field
         numddl = findddl(S,'UY',loadNodes);
         f = -A(numddl,:)*u;
@@ -210,7 +210,7 @@ if solve
         iterRestant = abs(maxDep-ud)/uInc;
         tempsRestant = resolutionTime(i)*iterRestant;
         
-        [hour, minutes, segondes] = GetTime(tempsRestant);        
+        temps = GetTime(tempsRestant);        
         
         % Update fields
         dt{i} = d;
@@ -218,28 +218,30 @@ if solve
         ft(i) = f;
         Ht{i} = reshape(double(mean(H,4)),[getnbelem(S),1]);
 
-        % Check if the edge is damaged  
-        maxdBord = round(max(d(noeudsDuBord)),3);
-        if maxdBord >= 1
-            ccBord = ccBord + 1;
-            fprintf('\n Damaged edge : %d / %d  \n', ccBord, iterBord)
-            if ccBord == iterBord
-                break
-            end
-        end
+%         % Check if the edge is damaged  
+%         maxdBord = round(max(d(noeudsDuBord)),3);
+%         if maxdBord >= 1
+%             ccBord = ccBord + 1;
+%             if display
+%                 fprintf('\n Damaged edge : %d / %d  \n', ccBord, iterBord)
+%             end            
+%             if ccBord == iterBord
+%                 break
+%             end
+%         end
     
         if display
-            fprintf('|  %4d  |  %4.2f  | %4f | %4f | %2dh:%2.fm:%2.fs   | %4f \n', ...
-                i, ud*1e6, abs(min(dt{i})), abs(max(dt{i})), hour, minutes, segondes, resolutionTime(i));
+            fprintf('|  %4d  |  %4.2f  | %4f | %4f | %s  | %4f \n', ...
+                i, ud*1e6, abs(min(dt{i})), abs(max(dt{i})), temps, resolutionTime(i));
         end
         
     end
 
     if display
-        fprintf('+--------+--------+----------+----------+---------------+\n');
+        fprintf('+--------+--------+----------+----------+-------------+\n');
     end
 
-    resume = PF_problem.resume(sum(resolutionTime));
+    resume = PFM.resume(sum(resolutionTime));
     
     fprintf(resume)
     
@@ -247,7 +249,7 @@ if solve
 
 else
     load(fullfile(pathname,'solution.mat'));
-    resume = PF_problem.resume(sum(resolutionTime));
+    resume = PFM.resume(sum(resolutionTime));
     fprintf(resume)
 end
 

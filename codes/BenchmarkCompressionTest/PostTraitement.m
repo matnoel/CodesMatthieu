@@ -8,14 +8,12 @@ close all
 % - Afficher courbe déplacement
 % - Afficher les temps de résolution
 
-% test = true;
-test = false;
+test = true;
+% test = false;
 
-solvers = ["HistoryField"]; %"HistoryField","BoundConstrainedOptim"
-PFmodels = ["AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
-% PFmodels = ["Isotropic", "AnisotropicAmor"];
-
-alphas = ["AT1","AT2"]; % "AT1", "AT2"
+solvers = ["HistoryField","BoundConstrainedOptim"]; %"HistoryField","BoundConstrainedOptim"
+splits = ["AnisotropicMiehe", "AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
+regularizations = ["AT1","AT2"]; % "AT1", "AT2"
 
 % Dossier ou on sauvegarde le post traitement
 PostTraitement_filename = append('BenchmarkCompressionTest_PostTraitement');
@@ -31,6 +29,8 @@ if ~exist(PostTraitement_pathname,'dir')
     mkdir(PostTraitement_pathname);
 end
 
+%%
+
 legends = {};
 i=0;
 
@@ -39,16 +39,16 @@ for s=1:length(solvers)
     solver = solvers(s);
     
     % Pour chaque modèle Phase field
-    for pf=1:length(PFmodels)
-        PFmodel = PFmodels(pf);
+    for sp=1:length(splits)
+        split = splits(sp);
         
         % Pour chaque modèle de régularisation
-        for a=1:length(alphas)
-            alpha = alphas(a);
+        for r=1:length(regularizations)
+            regularization = regularizations(r);
 
-            name = append(solver,' ',PFmodel,' ', alpha);
+            name = append(solver,' ',split,' ', regularization);
 
-            filename = append('BenchmarkCompressionTest_',PFmodel,'_', alpha,'_',solver);
+            filename = append('BenchmarkCompressionTest_',solver,'_', split,'_',regularization);
 
             if test
                 filename = append(filename,'_Test');
@@ -64,16 +64,16 @@ for s=1:length(solvers)
             i=i+1;
 
             % Charge le problème
-            load(fullfile(pathname,'problem.mat'));    
-            S = PF_Problem.S;
-            S_phase = PF_Problem.S_phase;
+            load(fullfile(pathname,'problem.mat'),'PFM');    
+            S = PFM.S;
+            S_phase =PFM.S_phase;
 
             % Charge la solution (que ce qui nous intéresse)
             load(fullfile(pathname,'solution.mat'),'ud_t','dt','ut','ft','resolutionTime'); 
             
-            [hour, minutes, segondes] = GetTime(sum(resolutionTime));
+            temps = GetTime(sum(resolutionTime));
 
-            fprintf("\n"+name+" - "+hour+"h:"+minutes+"m:"+segondes+"s \n")
+            fprintf("\n"+name+" - "+temps+"\n");
 
             %% Affichage 
             
@@ -81,7 +81,7 @@ for s=1:length(solvers)
             figure(1)
             plot(ud_t*1e6,-ft*1e-6,'LineWidth',1)
             hold on
-            legends{i} = append(PFmodel,' ', alpha);
+            legends{i} = append(split,' ', regularization);
             
             % Endommagement
             plotSolution(S_phase,dt{length(dt)});

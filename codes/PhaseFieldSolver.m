@@ -1,14 +1,16 @@
-function [u,d,A,H] = PhaseFieldSolver(S_phase, S, iter, PF_Problem, H, u, d)
+function [u,d,A,H,PFM] = PhaseFieldSolver(iter, PFM, H, u, d)
 
 %% ----------------------------Import variables ---------------------------
 
-solver = PF_Problem.solver; % 'HistoryField' or 'BoundConstrainedOptim'
+solver = PFM.solver; % 'HistoryField' or 'BoundConstrainedOptim'
+
+S = PFM.S;
+S_phase = PFM.S_phase;
 
 if strcmpi(solver,'BoundConstrainedOptim')
-    optimFun = PF_Problem.optimFun;
-    options = PF_Problem.options;
+    optimFun = PFM.optimFun;
+    options = PFM.options;
 end
-
 
 %% ------------------------- Internal energy field ------------------------
 
@@ -33,12 +35,12 @@ end
 
 mats_phase = MATERIALS(S_phase);
 for m=1:length(mats_phase)
-   mats_phase{m} = setparam(mats_phase{m},'r',PF_Problem.r(H{m}));    
+   mats_phase{m} = setparam(mats_phase{m},'r',PFM.r(H{m}));    
 end
 S_phase = actualisematerials(S_phase,mats_phase);
 
 [A_phase,b_phase] = calc_rigi(S_phase);
-b_phase = -b_phase + bodyload(S_phase,[],'QN',PF_Problem.F(H));
+b_phase = -b_phase + bodyload(S_phase,[],'QN',PFM.F(H));
 
 if any(b_phase>0)
 
@@ -72,6 +74,7 @@ end
 
 %% ------------------------ Displacement field ----------------------------
 
+% Update mat
 mats = MATERIALS(S);
 for m=1:length(mats)
     mats{m} = setparam(mats{m},'d',d);
@@ -79,7 +82,7 @@ for m=1:length(mats)
 end
 S = actualisematerials(S,mats);
 S = removebc(S);
-S = ApplyDirichletBoundaryConditions(S, PF_Problem.DirichletBoundaryConditions);
+S = ApplyDirichletBoundaryConditions(S, PFM.DirichletBoundaryConditions);
 
 [A,b] = calc_rigi(S,'nofree');
 b = -b;
@@ -87,3 +90,7 @@ b = -b;
 u = freematrix(S,A)\b;
 u = unfreevector(S,u);
 
+%% ---------------------------- Updtate PFM -------------------------------
+
+PFM.S = S;
+PFM.S_phase = S_phase;
