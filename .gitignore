@@ -1,0 +1,5 @@
+*~
+*.asv
+*.o
+.DS_Store
+results/
