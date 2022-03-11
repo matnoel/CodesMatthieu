@@ -42,8 +42,6 @@ S_phase = actualisematerials(S_phase,mats_phase);
 [A_phase,b_phase] = calc_rigi(S_phase);
 b_phase = -b_phase + bodyload(S_phase,[],'QN',PFM.F(H));
 
-if any(b_phase>0)
-
 % Resolution
 % d_old = d;
 switch solver
@@ -68,9 +66,6 @@ end
 
 d = unfreevector(S_phase,d);
 % max(d-d_old)
-end
-
-
 
 %% ------------------------ Displacement field ----------------------------
 

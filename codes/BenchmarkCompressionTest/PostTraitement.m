@@ -15,18 +15,15 @@ solvers = ["HistoryField","BoundConstrainedOptim"]; %"HistoryField","BoundConstr
 splits = ["AnisotropicMiehe", "AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
 regularizations = ["AT1","AT2"]; % "AT1", "AT2"
 
+% Fichier dans lequel on va récupérer les données
+foldername = 'CompressionTest_PlateWithHole';
+
 % Dossier ou on sauvegarde le post traitement
-PostTraitement_filename = append('BenchmarkCompressionTest_PostTraitement');
+filename = 'PostTraitement';
+pathnamePostTraitement = BuiltPathnameResult(test,foldername,filename);
 
-if test
-    PostTraitement_filename = append(PostTraitement_filename,'_Test');
-    PostTraitement_pathname = fullfile(GetCodesMatthieuPath,'results','BenchmarkCompressionTest','Test',PostTraitement_filename);
-else
-    PostTraitement_pathname = fullfile(GetCodesMatthieuPath,'results','BenchmarkCompressionTest',PostTraitement_filename);
-end
-
-if ~exist(PostTraitement_pathname,'dir')
-    mkdir(PostTraitement_pathname);
+if ~exist(pathnamePostTraitement,'dir')
+    mkdir(pathnamePostTraitement);
 end
 
 %%
@@ -46,16 +43,8 @@ for s=1:length(solvers)
         for r=1:length(regularizations)
             regularization = regularizations(r);
 
-            name = append(solver,' ',split,' ', regularization);
-
-            filename = append('BenchmarkCompressionTest_',solver,'_', split,'_',regularization);
-
-            if test
-                filename = append(filename,'_Test');
-                pathname = fullfile(GetCodesMatthieuPath,'results','BenchmarkCompressionTest','Test',filename);
-            else
-                pathname = fullfile(GetCodesMatthieuPath,'results','BenchmarkCompressionTest',filename);        
-            end
+            filename = append(solver,'_',split,'_', regularization);
+            pathname = BuiltPathnameResult(test,foldername,filename);
 
             if ~exist(pathname,'dir')
                 break
@@ -64,31 +53,33 @@ for s=1:length(solvers)
             i=i+1;
 
             % Charge le problème
-            load(fullfile(pathname,'problem.mat'),'PFM');    
-            S = PFM.S;
-            S_phase =PFM.S_phase;
+            load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');    
+            S = phaseFieldSolution.PFM.S;
+            S_phase = phaseFieldSolution.PFM.S_phase;
 
-            % Charge la solution (que ce qui nous intéresse)
-            load(fullfile(pathname,'solution.mat'),'ud_t','dt','ut','ft','resolutionTime'); 
-            
+            udt = phaseFieldSolution.udt;
+            ft = phaseFieldSolution.ft;
+            dt = phaseFieldSolution.dt;
+            resolutionTime = phaseFieldSolution.resolutionTime;
+
             temps = GetTime(sum(resolutionTime));
 
-            fprintf("\n"+name+" - "+temps+"\n");
+            fprintf("\n"+filename+" - "+temps+"\n");
 
             %% Affichage 
             
             % Force déplacement
             figure(1)
-            plot(ud_t*1e6,-ft*1e-6,'LineWidth',1)
+            plot(udt*1e6,-ft*1e-6,'LineWidth',1)
             hold on
             legends{i} = append(split,' ', regularization);
             
             % Endommagement
             plotSolution(S_phase,dt{length(dt)});
-            name = append('damage ',name,'.png');
-            saveas(gcf, fullfile(PostTraitement_pathname, name))
-
+            filename = append('damage ',filename,'.png');
+            saveas(gcf, fullfile(pathnamePostTraitement, filename))
         end
+        
     end
     
     figure(1)
@@ -98,8 +89,10 @@ for s=1:length(solvers)
     ylabel("Load in kN/mm",'interpreter','Latex','fontsize',15)  
     legend(legends,'Location','southeast','interpreter','Latex','fontsize',13)
     file = append('displacement ',solver,'.png');
-    saveas(gcf, fullfile(PostTraitement_pathname, file))
+    saveas(gcf, fullfile(pathnamePostTraitement, file))
     hold off
+
+    i=0;
 end
 
 

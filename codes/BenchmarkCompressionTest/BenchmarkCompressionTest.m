@@ -7,7 +7,7 @@ close all
 
 %% Options
 
-parallel = true;
+parallel = false;
 
 postTraitement = false;
 
@@ -27,15 +27,15 @@ else
 end
 
 
-display = false;
+display = true;
 
 %% Configs
 
 foldername = 'CompressionTest_PlateWithHole';
 
-solvers = ["HistoryField"]; %"HistoryField","BoundConstrainedOptim"
-splits = ["AnisotropicMiehe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
-regularizations = ["AT1","AT2"]; % "AT1", "AT2"
+solvers = ["BoundConstrainedOptim"]; %"HistoryField","BoundConstrainedOptim"
+splits = ["AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
+regularizations = ["AT2"]; % "AT1", "AT2"
 
 configs={};
 nbConfig=0;
@@ -195,16 +195,14 @@ if solve
         
         parfor config=1:nbConfig 
             PFM=PhaseFieldModels{config};
-            phaseFieldSolution = PhaseFieldTresholdSimulation(PFM, loadNodes,smallInc, bigInc, maxDep, 0.6, display);
-            phaseFieldSolutions{config} = phaseFieldSolution;
+            phaseFieldSolutions{config} = PhaseFieldTresholdSimulation(PFM, loadNodes,smallInc, bigInc, maxDep, 0.6, display);
         end
 
         delete(gcp('nocreate'))
     else        
         for config=1:nbConfig
             PFM=PhaseFieldModels{config};
-            phaseFieldSolution = PhaseFieldTresholdSimulation(PFM, loadNodes,smallInc, bigInc, maxDep, 0.6, display);
-            phaseFieldSolutions{config} = phaseFieldSolution;
+            phaseFieldSolutions{config} = PhaseFieldTresholdSimulation(PFM, loadNodes,smallInc, bigInc, maxDep, 0.6, display);            
         end
     end
 
