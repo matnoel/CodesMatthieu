@@ -1,4 +1,4 @@
-function [u,d,A,H,PFM] = PhaseFieldSolver(iter, PFM, H, u, d)
+function [u,d,A,H,PFM] = PhaseFieldSolver(PFM, H, u, d)
 
 %% ----------------------------Import variables ---------------------------
 

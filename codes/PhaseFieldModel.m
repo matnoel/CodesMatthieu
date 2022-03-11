@@ -65,11 +65,9 @@ classdef PhaseFieldModel
             end
         end
 
-        function resume = resume(obj, time)
+        function resume = resume(obj)
             
             DIM = getdim(getgroupelem(obj.S,1));
-
-            temps = GetTime(time);
 
             resume = "\n dim : "+DIM+"" + ...
                     "\n solver : "+obj.solver+"" + ...
@@ -79,8 +77,9 @@ classdef PhaseFieldModel
                     "\n l_0 : "+obj.l_0+"" + ...
                     "\n nb elements : "+getnbelem(obj.S)+"" + ...
                     "\n nb nodes : "+getnbnode(obj.S)+"" + ...
-                    "\n nb dofs : "+getnbnode(obj.S)*DIM+"" + ...
-                    "\n elapsed time : "+temps+"\n";
+                    "\n nb dofs : "+getnbddl(obj.S)+"";
+%                     "\n elapsed time : "+temps+"\n";
+                    % "\n nb dofs : "+getnbnode(obj.S)*DIM+"" + ...
         end        
       
     end
