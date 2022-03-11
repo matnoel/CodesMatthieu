@@ -237,13 +237,12 @@ if solve
         
     end
 
+    resume = PFM.resume(sum(resolutionTime));
+
     if display
         fprintf('+--------+--------+----------+----------+-------------+\n');
+        fprintf(resume)
     end
-
-    resume = PFM.resume(sum(resolutionTime));
-    
-    fprintf(resume)
     
     save(fullfile(pathname,'solution.mat'),'ud_t','dt','ut','Ht','ft','resolutionTime');
 
@@ -287,7 +286,7 @@ if plotResults
     grid on
     saveas(gcf, fullfile(pathname, 'convergence.png'))
 
-    fprintf('\n plot saved \n')
+    fprintf("\n"+filename+" - plot saved \n")
 
 end
 
