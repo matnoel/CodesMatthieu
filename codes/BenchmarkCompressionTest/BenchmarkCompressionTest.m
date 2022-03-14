@@ -11,8 +11,8 @@ parallel = false;
 
 postTraitement = false;
 
-test = true;
-% test = false;
+% test = true;
+test = false;
 
 if postTraitement
     setPFM = false;
@@ -33,9 +33,9 @@ display = true;
 
 foldername = 'CompressionTest_PlateWithHole';
 
-solvers = ["BoundConstrainedOptim"]; %"HistoryField","BoundConstrainedOptim"
-splits = ["AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
-regularizations = ["AT2"]; % "AT1", "AT2"
+solvers = ["HistoryField"]; %"HistoryField","BoundConstrainedOptim"
+splits = ["AnisotropicMiehe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
+regularizations = ["AT1"]; % "AT1", "AT2"
 
 configs={};
 nbConfig=0;
