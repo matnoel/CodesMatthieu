@@ -7,12 +7,12 @@ close all
 
 %% Options
 
-parallel = false;
+parallel = true;
 
 postTraitement = false;
 
-% test = true;
-test = false;
+test = true;
+% test = false;
 
 if postTraitement
     setPFM = false;
@@ -27,15 +27,15 @@ else
 end
 
 
-display = true;
+display = false;
 
 %% Configs
 
 foldername = 'CompressionTest_PlateWithHole';
 
-solvers = ["HistoryField"]; %"HistoryField","BoundConstrainedOptim"
-splits = ["AnisotropicMiehe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
-regularizations = ["AT1"]; % "AT1", "AT2"
+solvers = ["HistoryField","BoundConstrainedOptim"]; %"HistoryField","BoundConstrainedOptim"
+splits = ["AnisotropicMiehe", "AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
+regularizations = ["AT1", "AT2"]; % "AT1", "AT2"
 
 configs={};
 nbConfig=0;
@@ -185,38 +185,35 @@ end
 
 %% Resolution
 
-if solve   
-    
-    phaseFieldSolutions = {};
+if solve 
+
+    funSimulation = @(PFModel) PhaseFieldTresholdSimulation(PFModel, loadNodes,smallInc, bigInc, maxDep, 0.6, display);
 
     if parallel
         delete(gcp('nocreate'))
         parpool(nbConfig)
-        
+
         parfor config=1:nbConfig 
-            PFM=PhaseFieldModels{config};
-            phaseFieldSolutions{config} = PhaseFieldTresholdSimulation(PFM, loadNodes,smallInc, bigInc, maxDep, 0.6, display);
+            phaseFieldSolutions{config} = funSimulation(PhaseFieldModels{config});
         end
 
-        delete(gcp('nocreate'))
-    else        
-        for config=1:nbConfig
-            PFM=PhaseFieldModels{config};
-            phaseFieldSolutions{config} = PhaseFieldTresholdSimulation(PFM, loadNodes,smallInc, bigInc, maxDep, 0.6, display);            
+        delete(gcp('nocreate'))        
+    else
+        for config=1:nbConfig 
+            phaseFieldSolutions(config) = funSimulation(PhaseFieldModels{config});
         end
     end
-
+    
     % Save
     for config=1:nbConfig
-        phaseFieldSolution = phaseFieldSolutions{config};
+        phaseFieldSolution = phaseFieldSolutions(config);
         save(fullfile(pathnames{config},'solution.mat'),'phaseFieldSolution');
     end
 
-    
 else
     for config=1:nbConfig
         load(fullfile(pathnames{config},'solution.mat'),'phaseFieldSolution');
-        phaseFieldSolutions{config} = phaseFieldSolution;
+        phaseFieldSolutions(config) = phaseFieldSolution;
     end
 end
 

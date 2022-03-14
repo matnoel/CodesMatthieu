@@ -92,7 +92,7 @@ if display
     fprintf(resume)
 end
 
-fprintf(GetTime(sum(resolutionTime)))
+fprintf("\n"+GetTime(sum(resolutionTime))+"")
 
 phaseFieldSolution = PhaseFieldSolution(PFM,udt,dt,ut,Ht,ft,resolutionTime);
 
