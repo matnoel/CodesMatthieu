@@ -53,9 +53,15 @@ for s=1:length(solvers)
             i=i+1;
 
             % Charge le problème
-            load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');    
-            S = phaseFieldSolution.PFM.S;
-            S_phase = phaseFieldSolution.PFM.S_phase;
+            load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');
+            
+            if iscell(phaseFieldSolution)
+                phaseFieldSolution = phaseFieldSolution{1};
+            end
+
+            PFM = phaseFieldSolution.PFM;
+            S = PFM.S;
+            S_phase = PFM.S_phase;
 
             udt = phaseFieldSolution.udt;
             ft = phaseFieldSolution.ft;
@@ -93,6 +99,8 @@ for s=1:length(solvers)
     hold off
 
     i=0;
+
+    close all
 end
 
 

@@ -1,4 +1,5 @@
 function temps = GetTime(time)
+% convert time in segondes to xh: xm: xs
         hour = floor(time/3600);
         hourRest = time/3600 - hour;
         minutes = floor(hourRest*60);
