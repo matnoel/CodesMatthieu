@@ -8,12 +8,12 @@ close all
 % - Afficher courbe déplacement
 % - Afficher les temps de résolution
 
-test = true;
-% test = false;
+% test = true;
+test = false;
 
-solvers = ["HistoryField","BoundConstrainedOptim"]; %"HistoryField","BoundConstrainedOptim"
+solvers = ["HistoryField"]; %"HistoryField","BoundConstrainedOptim"
 splits = ["AnisotropicMiehe", "AnisotropicHe"]; % "Isotropic", "AnisotropicAmor", "AnisotropicMiehe", "AnisotropicHe"
-regularizations = ["AT1","AT2"]; % "AT1", "AT2"
+regularizations = ["AT2"]; % "AT1", "AT2"
 
 % Fichier dans lequel on va récupérer les données
 foldername = 'CompressionTest_PlateWithHole';
@@ -80,10 +80,10 @@ for s=1:length(solvers)
             hold on
             legends{i} = append(split,' ', regularization);
             
-            % Endommagement
-            plotSolution(S_phase,dt{length(dt)});
-            filename = append('damage ',filename,'.png');
-            saveas(gcf, fullfile(pathnamePostTraitement, filename))
+%             % Endommagement
+%             plotSolution(S_phase,dt{length(dt)});
+%             filename = append('damage ',filename,'.png');
+%             saveas(gcf, fullfile(pathnamePostTraitement, filename))
         end
         
     end
@@ -102,7 +102,6 @@ for s=1:length(solvers)
 
     close all
 end
-
 
 
 fprintf('\n plot saved \n')

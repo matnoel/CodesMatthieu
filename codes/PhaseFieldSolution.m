@@ -42,17 +42,17 @@ classdef PhaseFieldSolution
             ylabel("Resolution time in s",'interpreter','Latex','fontsize',15)    
             saveas(gcf, fullfile(pathname, 'time.png'))
             
-            % % norm dInc
-            % normDt(1)=0;    
-            % for i=1:length(dt)-1        
-            %     normDt(i+1) = sqrt(sum((dt{i+1}-dt{i}).^2));
-            % end    
-            % figure
-            % semilogy(-ud_t*1e6, normDt,'LineWidth',1)
-            % xlabel("Displacement in $\mu m$",'interpreter','Latex','fontsize',15)
-            % ylabel("$\Vert d_{i+1} - d_{i} \Vert$",'interpreter','Latex','fontsize',15)
-            % grid on
-            % saveas(gcf, fullfile(pathname, 'convergence.png'))
+%             % norm dInc
+%             normDt(1)=0;    
+%             for i=1:length(obj.dt)-1        
+%                 normDt(i+1) = sqrt(sum((obj.dt{i+1}-obj.dt{i}).^2));
+%             end
+%             figure
+%             semilogy(-obj.udt*1e6, normDt,'LineWidth',1)
+%             xlabel("Displacement in $\mu m$",'interpreter','Latex','fontsize',15)
+%             ylabel("$\Vert d_{i+1} - d_{i} \Vert$",'interpreter','Latex','fontsize',15)
+%             grid on
+%             saveas(gcf, fullfile(pathname, 'convergence.png'))
             
             fprintf("\n saved \n")
         end
