@@ -162,6 +162,7 @@ if setPFM
     
 else
     load(fullfile(pathname,'problem.mat'),'phaseFieldModel','displacement');
+    fprintf(phaseFieldModel.resume)
 end
 
 %% Resolution
@@ -169,10 +170,9 @@ end
 if solve
 %     phaseFieldSolution = PhaseFieldTresholdSimulation(PFM, loadNodes,inc1, inc0, umax, 0.6, display);
     phaseFieldSolution = PhaseFieldSimulation(phaseFieldModel, displacement, display);
-    save(fullfile(pathname,'solution.mat'),'phaseFieldSolution');
+    save(fullfile(pathname,'solution.mat'),'phaseFieldSolution');    
 else
-    load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');
-    frpintf(phaseFieldSolution.resume())
+    load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');    
 end
 
 %% Save solutions
