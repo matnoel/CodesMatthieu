@@ -1,16 +1,16 @@
 %% Benchmark Compression test - Plate with hole %%
 % [Nguyen, Yvonnet, Waldmann, He, 2020, IJNME]
 
-clc
+% clc
 clearvars
 close all
 
 %% Options
 
-postTraitement = true;
+postTraitement = false;
 
-% test = true;
-test = false;
+test = true;
+% test = false;
 
 if postTraitement
     setPFM = false;
@@ -21,7 +21,7 @@ else
     setPFM = true;
     solve = true;
     plotResults = true;
-    saveParaview = false;
+    saveParaview = true;
 end
 
 display = true;
@@ -31,7 +31,7 @@ display = true;
 foldername = 'CompressionTest_PlateWithHole';
 
 solver = 'HistoryField'; %'HistoryField','BoundConstrainedOptim'
-split = 'AnisotropicMiehe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
+split = 'AnisotropicHe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
 regularization = 'AT2'; % 'AT1', 'AT2'
 
 filename = append(solver,'_', split,'_',regularization);
@@ -119,6 +119,11 @@ if setPFM
     BLeft = LIGNE([0, 0], [0, h]); 
     BRight = LIGNE([L, 0], [L, h]);   
     
+    P0 = getvertices(domain);
+    P0 = POINT(P0{1});
+
+    S = final(S);
+
     [~, loadNodes] = intersect(S,BUpper);
     
     % Get the nodes on the egdes
@@ -126,12 +131,11 @@ if setPFM
     [~,noeudsBUpper] = intersect(S, BUpper);
     [~,noeudsBLeft] = intersect(S, BLeft);
     [~,noeudsBRight] = intersect(S, BRight);
-    noeudsDuBord = [noeudsBLeft; noeudsBRight; noeudsBLower; noeudsBUpper];
-    
-    S = final(S);    
+    noeudsDuBord = [noeudsBLeft; noeudsBRight; noeudsBLower; noeudsBUpper];   
 
     phaseFieldModel.DirichletBoundaryConditions{1} = {BLower, 'UY', 0};
-    phaseFieldModel.DirichletBoundaryConditions{2} = {[0,0], 'UX', 0};
+%     phaseFieldModel.DirichletBoundaryConditions{2} = {[0,0], 'UX', 0};
+    phaseFieldModel.DirichletBoundaryConditions{2} = {P0, 'UX', 0};
     % apply the boundary conditions
     S = ApplyDirichletBoundaryConditions(S, phaseFieldModel.DirichletBoundaryConditions);
     
