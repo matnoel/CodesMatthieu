@@ -7,10 +7,10 @@ close all
 
 %% Options
 
-postTraitement = false;
+postTraitement = true;
 
-test = true;
-% test = false;
+% test = true;
+test = false;
 
 if postTraitement
     setPFM = false;
@@ -172,6 +172,7 @@ if solve
     save(fullfile(pathname,'solution.mat'),'phaseFieldSolution');
 else
     load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');
+    frpintf(phaseFieldSolution.resume())
 end
 
 %% Save solutions
