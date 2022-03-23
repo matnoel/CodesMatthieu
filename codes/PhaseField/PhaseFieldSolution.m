@@ -61,7 +61,7 @@ classdef PhaseFieldSolution
             
             S = obj.PFM.S;
 
-            calcStress = false;
+            calcStress = true;
             
             fprintf('\n Paraview \n')
             for i=1:length(obj.dt)
@@ -102,6 +102,19 @@ classdef PhaseFieldSolution
                 
             end
             make_pvd_file(pathname,'solution',1,length(obj.dt));
+        end
+
+        function [] = MakeMovie(obj, pathname)
+            
+            options = {'plotiter',true,'plottime',false};
+            framerate = 80;
+            
+            T = TIMEMODEL(obj.udt);
+
+            dt = TIMEMATRIX(obj.dt,T,size(obj.dt));
+
+            evolSolution(obj.PFM.S_phase, dt,'FrameRate',framerate,'filename','damage','pathname',pathname,options{:});
+
         end
         
     end

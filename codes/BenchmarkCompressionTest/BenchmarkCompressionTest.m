@@ -7,21 +7,23 @@ close all
 
 %% Options
 
-postTraitement = true;
+postTraitement = false;
 
-% test = true;
-test = false;
+test = true;
+% test = false;
 
 if postTraitement
     setPFM = false;
     solve = false;
     plotResults = false;
     saveParaview = true;
+    makeMovie = false;
 else
     setPFM = true;
     solve = true;
-    plotResults = true;
-    saveParaview = true;
+    plotResults = false;
+    saveParaview = false;
+    makeMovie = false;
 end
 
 display = true;
@@ -31,8 +33,8 @@ display = true;
 foldername = 'CompressionTest_PlateWithHole';
 
 solver = 'HistoryField'; %'HistoryField','BoundConstrainedOptim'
-split = 'AnisotropicHe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
-regularization = 'AT2'; % 'AT1', 'AT2'
+split = 'AnisotropicMiehe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
+regularization = 'AT1'; % 'AT1', 'AT2'
 
 filename = append(solver,'_', split,'_',regularization);
 
@@ -162,7 +164,7 @@ if setPFM
     
 else
     load(fullfile(pathname,'problem.mat'),'phaseFieldModel','displacement');
-    fprintf(phaseFieldModel.resume)
+%     fprintf(phaseFieldModel.resume)
 end
 
 %% Resolution
@@ -177,15 +179,14 @@ end
 
 %% Save solutions
 
-if plotResults || saveParaview
-    
-    if plotResults
-        phaseFieldSolution.PlotResults(pathname);
-    end
-
-    if saveParaview   
-        phaseFieldSolution.SaveParaview(pathname);
-    end
-
+if plotResults
+    phaseFieldSolution.PlotResults(pathname);
 end
 
+if saveParaview   
+    phaseFieldSolution.SaveParaview(pathname);
+end
+
+if makeMovie
+    phaseFieldSolution.MakeMovie(pathname)
+end
