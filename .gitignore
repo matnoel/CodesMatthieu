@@ -3,4 +3,3 @@
 *.o
 .DS_Store
 results/
-GetCodesMatthieuPath.m

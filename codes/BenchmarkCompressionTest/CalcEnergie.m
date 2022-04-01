@@ -7,7 +7,7 @@ clc, close all, clear all
 verif=false;
 
 E = 210; %Pa 210e9"
-v = 0.1; % ]-1;0.5[
+v = 0.3; % ]-1;0.5[
 
 mu = E/(2*(1+v));
 lambda = v*E/((1+v)*(1-2*v));
@@ -18,7 +18,8 @@ Sig = 10000; %Pa
 Sig_1 = zeros(3,3);
 Sig_1(2,2) = -3*Sig;
 
-Sig_2 = Sig_1/3;
+Sig_2 = zeros(3,3);
+Sig_2(1,1) = Sig;
 
 I=eye(3);
 

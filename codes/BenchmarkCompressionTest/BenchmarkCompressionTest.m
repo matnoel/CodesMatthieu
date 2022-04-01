@@ -7,16 +7,16 @@ close all
 
 %% Options
 
-postTraitement = false;
+postTraitement = true;
 
 test = true;
 % test = false;
 
 if postTraitement
-    setPFM = false;
+    setPFM = true;
     solve = false;
     plotResults = false;
-    saveParaview = true;
+    saveParaview = false;
     makeMovie = false;
 else
     setPFM = true;
@@ -34,7 +34,7 @@ foldername = 'CompressionTest_PlateWithHole';
 
 solver = 'HistoryField'; %'HistoryField','BoundConstrainedOptim'
 split = 'AnisotropicMiehe'; % 'Isotropic', 'AnisotropicAmor', 'AnisotropicMiehe', 'AnisotropicHe'
-regularization = 'AT1'; % 'AT1', 'AT2'
+regularization = 'AT2'; % 'AT1', 'AT2'
 
 filename = append(solver,'_', split,'_',regularization);
 
@@ -136,7 +136,6 @@ if setPFM
     noeudsDuBord = [noeudsBLeft; noeudsBRight; noeudsBLower; noeudsBUpper];   
 
     phaseFieldModel.DirichletBoundaryConditions{1} = {BLower, 'UY', 0};
-%     phaseFieldModel.DirichletBoundaryConditions{2} = {[0,0], 'UX', 0};
     phaseFieldModel.DirichletBoundaryConditions{2} = {P0, 'UX', 0};
     % apply the boundary conditions
     S = ApplyDirichletBoundaryConditions(S, phaseFieldModel.DirichletBoundaryConditions);
@@ -189,4 +188,67 @@ end
 
 if makeMovie
     phaseFieldSolution.MakeMovie(pathname)
+end
+
+%% Look at the stresses and strains and energy near the hole
+
+clc
+
+[~, nodesOnCircle] = intersect(S,circle);
+coord = getcoord(S.node(nodesOnCircle));
+
+dec = 1e-5;
+
+nodes1 = find(coord(:,1) >= L/2 + holeDiameter/2 - dec);
+nodes2 = find(coord(:,2) >= L + holeDiameter/2 - dec);
+
+plotModel(model,'Color','k','FaceColor','c','FaceAlpha',1,'legend',false);
+hold on 
+scatter(coord(nodes1,1),coord(nodes1,2),'bx','LineWidth',1.5)
+scatter(coord(nodes2,1),coord(nodes2,2),'rx','LineWidth',1.5)
+
+elems = getgroupelem(S);
+connect = getconnec(elems{1});
+
+elems1 = GetElements(connect, nodes1);
+elems2 = GetElements(connect, nodes2);
+
+% for i=1:length(phaseFieldSolution.dt)
+% 
+%     ui = phaseFieldSolution.ut{i};
+%     di = phaseFieldSolution.dt{i};
+%     
+%     % update mat
+%     mats = MATERIALS(S);
+%     for m=1:length(mats)
+%         mats{m} = setparam(mats{m},'d',di);
+%         mats{m} = setparam(mats{m},'u',ui);
+%     end
+%     S = actualisematerials(S,mats);
+%     
+%     % Stress
+%     stress = double(mean(calc_sigma(S,ui),4));
+%     
+%     Sxx = reshape(stress(1,1,:),[getnbelem(S),1]);
+%     Syy = reshape(stress(2,1,:),[getnbelem(S),1]);
+%     Sxy = reshape(stress(3,1,:),[getnbelem(S),1]);
+% 
+%     Svm = sqrt(Sxx.^2+Syy.^2-(Sxx.*Syy)+3*Sxy.^2);
+% 
+%     Sxx_t_e(i,1) = mean(Sxx(elems1)); Sxx_t_e(i,2) = mean(Sxx(elems2));
+%     Syy_t_e(i,1) = mean(Syy(elems1)); Syy_t_e(i,2) = mean(Syy(elems2));
+%     Sxy_t_e(i,1) = mean(Sxy(elems1)); Sxy_t_e(i,2) = mean(Sxy(elems2));
+% 
+% end
+% 
+% fprintf("")
+
+%% 
+
+function elems = GetElements(connect, nodes)
+    % Get the elements who are using the nodes
+    
+    [Lia, ~] = ismember(connect, nodes);
+    [row,~] = find(Lia>0);
+    elems = unique(row);
 end

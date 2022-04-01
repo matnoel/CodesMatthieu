@@ -32,7 +32,7 @@ ep = height;
 
 %% Création du modèle et maillage
 
-nby = 100;
+nby = 10;
 cl = height/nby; %longeur de maille
 nby = ceil(Length/cl);
 
