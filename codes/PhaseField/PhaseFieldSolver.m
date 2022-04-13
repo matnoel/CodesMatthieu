@@ -40,12 +40,21 @@ end
 S_phase = actualisematerials(S_phase,mats_phase);
 
 [A_phase,b_phase] = calc_rigi(S_phase);
+
+if PFM.regularization == "AT1" && ~any(-b_phase>0)
+    solve=false;
+else
+    solve=true;
+end
+
+
 b_phase = -b_phase + bodyload(S_phase,[],'QN',PFM.F(H));
+
+
 
 % Resolution
 % d_old = d;
-
-if any(b_phase>0)
+if any(b_phase>0) && solve
     switch solver
         case 'HistoryField'
             d = A_phase\b_phase;            

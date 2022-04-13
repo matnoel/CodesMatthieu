@@ -61,7 +61,7 @@ classdef PhaseFieldSolution
             
             S = obj.PFM.S;
 
-            calcStress = true;
+            calcStress = false;
             
             fprintf('\n Paraview \n')
             for i=1:length(obj.dt)

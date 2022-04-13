@@ -66,6 +66,7 @@ while ud < umax
             uInc = inc0;
         end
         ud = ud + uInc;
+        iterRestant = abs(umax-ud)/uInc;
     else
         ud = displacement(i);
         % calc uInc for estimation time
@@ -74,15 +75,16 @@ while ud < umax
         else
             uInc = 0;
         end
+        iterRestant = length(displacement)-i;
         
     end
-    udt(i) = -ud;
+    udt(i) = ud;
 
     %update the dirchelet boundary conditions
     nbCond = length(PFM.DirichletBoundaryConditions); % get the number of boundary conditions
     loadNodes = PFM.DirichletBoundaryConditions{nbCond}{1};
     directions = PFM.DirichletBoundaryConditions{nbCond}{2};
-    PFM.DirichletBoundaryConditions{nbCond} = {loadNodes, directions, -ud}; %update
+    PFM.DirichletBoundaryConditions{nbCond} = {loadNodes, directions, ud}; %update
     
     % resolution
     tSolve = tic;
@@ -100,7 +102,6 @@ while ud < umax
     % calculation of remaining time
     resolutionTime(i) = toc(tSolve);
     
-    iterRestant = abs(umax-ud)/uInc;
     tempsRestant = resolutionTime(i)*iterRestant;
     
     temps = GetTime(tempsRestant);        

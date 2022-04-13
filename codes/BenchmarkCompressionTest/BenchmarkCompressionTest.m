@@ -7,16 +7,16 @@ close all
 
 %% Options
 
-postTraitement = true;
+postTraitement = false;
 
 test = true;
 % test = false;
 
 if postTraitement
-    setPFM = true;
+    setPFM = false;
     solve = false;
     plotResults = false;
-    saveParaview = false;
+    saveParaview = true;
     makeMovie = false;
 else
     setPFM = true;
