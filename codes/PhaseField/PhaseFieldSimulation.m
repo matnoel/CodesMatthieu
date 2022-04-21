@@ -1,4 +1,4 @@
-function phaseFieldSolution = PhaseFieldSimulation(PFM, displacement, display)
+function phaseFieldSolution = PhaseFieldSimulation(PFM, displacement,uniteAffichage,signe, display,noeudsDuBord)
 % Simulation for a phase field problem
 % PFM : phase field model
 % displacement : must be a Timemodel or a struct containing :
@@ -11,6 +11,21 @@ function phaseFieldSolution = PhaseFieldSimulation(PFM, displacement, display)
 S = PFM.S;
 S_phase = PFM.S_phase;
 
+if signe ~= 1 && signe ~= -1
+    error("Signe doit etre -1 ou 1")
+end
+
+switch uniteAffichage
+    case "m"
+        coef = 1;
+    case "mm"
+        coef = 1e3;
+    case "µm"
+        coef = 1e6;
+    otherwise
+        error("unité pas exsistente")
+end
+
 if isstruct(displacement)
     inc0 = displacement.inc0;
     inc1 = displacement.inc1;
@@ -20,7 +35,6 @@ if isstruct(displacement)
     thresholdSimulation = true;
 else
     thresholdSimulation = false;
-
 
 %     inc0 = linspace(dt0,nt0*dt0,nt0);
 %     inc1 = linspace(t0(end)+dt1,t0(end)+nt1*dt1,nt1);
@@ -41,14 +55,12 @@ if display
     fprintf(PFM.resume)
     fprintf('\n')
     fprintf('+--------+--------+----------+----------+-------------+\n');
-    fprintf('|  Iter  | u [µm] |  min(d)  |  max(d)  |  t [h:m:s]  |\n');
+    fprintf('|  Iter  | u [%s] |  min(d)  |  max(d)  |  t [h:m:s]  |\n',uniteAffichage);
     fprintf('+--------+--------+----------+----------+-------------+\n');
 end
 
 ccBord = 0; % Counter to count the number of times the edge is damaged
 iterBord = 50; % Number of iterations allowed after edge damage 
-
-%
 
 ud=0;
 
@@ -64,7 +76,7 @@ while ud < umax
             uInc = inc1;
         else
             uInc = inc0;
-        end
+        end        
         ud = ud + uInc;
         iterRestant = abs(umax-ud)/uInc;
     else
@@ -78,17 +90,18 @@ while ud < umax
         iterRestant = length(displacement)-i;
         
     end
-    udt(i) = ud;
+    udt(i) = signe*ud;
 
     %update the dirchelet boundary conditions
     nbCond = length(PFM.DirichletBoundaryConditions); % get the number of boundary conditions
     loadNodes = PFM.DirichletBoundaryConditions{nbCond}{1};
     directions = PFM.DirichletBoundaryConditions{nbCond}{2};
-    PFM.DirichletBoundaryConditions{nbCond} = {loadNodes, directions, ud}; %update
+    PFM.DirichletBoundaryConditions{nbCond} = {loadNodes, directions, udt(i)}; %update
     
     % resolution
     tSolve = tic;
-    [u,d,A,H,PFM] =  PhaseFieldSolver(PFM, H, u, d);
+    % [u,d,A,H,PFM] =  PhaseFieldSolver(PFM, H, u, d);
+    [u,d,A,H,PFM,iter] =  PhaseFieldSolver(PFM, H, u, d);
     
     % Get models back
     S = PFM.S;
@@ -112,23 +125,32 @@ while ud < umax
     ft(i) = f;
     Ht{i} = reshape(double(mean(H,4)),[getnbelem(S),1]);
 
-%         % Check if the edge is damaged  
-%         maxdBord = round(max(d(noeudsDuBord)),3);
-%         if maxdBord >= 1
-%             ccBord = ccBord + 1;
-%             if display
-%                 fprintf('\n Damaged edge : %d / %d  \n', ccBord, iterBord)
-%             end            
-%             if ccBord == iterBord
-%                 break
-%             end
-%         end
+    % Check if the edge is damaged
+    maxdBord = round(max(d(noeudsDuBord)),2);
+    if maxdBord >= 1
+        ccBord = ccBord + 1;
+        if display
+            fprintf('\n Damaged edge : %d / %d  \n', ccBord, iterBord)
+        end            
+        if ccBord == iterBord
+            break
+        end
+    end
 
     if display
-        fprintf('|  %4d  |  %4.2f  | %4f | %4f | %s  | %4f \n', ...
-            i, ud*1e6, abs(min(dt{i})), abs(max(dt{i})), temps, resolutionTime(i));
+        dep = ud*coef;
+        maxd = abs(max(dt{i}));
+        mind = abs(min(dt{i}));
+
+        fprintf('|  %4d  |  %4.2f  | %4.3f | %4.3f | %s  | %4.3f | %d \n', ...
+            i, dep, mind, maxd, temps, resolutionTime(i), iter);
     end
     
+    if iter>60
+        fprintf("Arret car on arrive pas a converger iter = %s \n",iter)
+        break
+    end
+
 end
 
 if display

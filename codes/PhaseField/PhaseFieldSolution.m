@@ -3,7 +3,7 @@ classdef PhaseFieldSolution
     properties
         PFM % Phase field model
         udt % Imposed displacement
-        dt % Damaged field
+        dt % Damaged fields
         ut % Displacement field
         Ht % Internal energy
         ft % Force related to the imposed displacement
@@ -22,25 +22,49 @@ classdef PhaseFieldSolution
             obj.resolutionTime = resolutionTime;
         end
 
-        function [] = PlotResults(obj, pathname)    
+        function [] = PlotResults(obj, pathname, unite)
+
+            switch unite
+                case "m"
+                    coef = 1;
+                case "mm"
+                    coef = 1e3;
+                case "µm"
+                    coef = 1e6;
+                otherwise
+                    error("unité pas exsistente")
+            end
+
+            mats = MATERIALS(obj.PFM.S);
+            mat = mats{1};
+            ep = getparam(mat,'DIM3');
+            
+            dept = abs(obj.udt*coef);
+            forcet = abs(obj.ft/1e3);
 
             figure
-            plot(obj.udt*1e6,-obj.ft*1e-6,'LineWidth',1)
+            plot(dept,forcet,'LineWidth',1)
             grid on
-            xlabel("Displacement in $\mu m$",'interpreter','Latex','fontsize',15)
-            ylabel("Load in kN/mm",'interpreter','Latex','fontsize',15)
+            if unite == "µm"
+                ytitle = "Displacement in $\mu m$";
+            else
+                ytitle = "Displacement in $"+unite+"$";
+            end
+            
+            xlabel(ytitle,'interpreter','Latex','fontsize',15)
+            ylabel("Load in kN",'interpreter','Latex','fontsize',15)
             
             saveas(gcf, fullfile(pathname, 'displacement.png'))
             
             plotSolution(obj.PFM.S_phase,obj.dt{length(obj.dt)});
             saveas(gcf, fullfile(pathname, 'damage.png'))
             
-            figure
-            plot(-obj.udt*1e6,obj.resolutionTime,'LineWidth',1)
-            grid on
-            xlabel("Displacement in $\mu m$",'interpreter','Latex','fontsize',15)
-            ylabel("Resolution time in s",'interpreter','Latex','fontsize',15)    
-            saveas(gcf, fullfile(pathname, 'time.png'))
+%             figure
+%             plot(-obj.udt,obj.resolutionTime,'LineWidth',1)
+%             grid on
+%             xlabel("Displacement in $\mu m$",'interpreter','Latex','fontsize',15)
+%             ylabel("Resolution time in s",'interpreter','Latex','fontsize',15)    
+%             saveas(gcf, fullfile(pathname, 'time.png'))
             
 %             % norm dInc
 %             normDt(1)=0;    

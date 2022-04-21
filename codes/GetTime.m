@@ -7,5 +7,5 @@ function temps = GetTime(time)
         segondes = floor(minutesRest*60);
 
         temps = ""+hour+"h: "+minutes+"m: "+segondes+"s";
-%         temps = ('%2dh:%2.fm:%2.fs',hour, minutes, segondes);
+        %temps = ('%2dh:%2.fm:%2.fs',hour, minutes, segondes);
 end
