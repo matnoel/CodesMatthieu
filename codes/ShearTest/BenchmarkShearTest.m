@@ -165,7 +165,7 @@ end
 %% Resolution
 
 if solve
-    phaseFieldSolution = PhaseFieldSimulation(phaseFieldModel, displacement, display);
+    phaseFieldSolution = PhaseFieldSimulation(phaseFieldModel, displacement,"mm",1, display,[]);
     save(fullfile(pathname,'solution.mat'),'phaseFieldSolution');    
 else
     load(fullfile(pathname,'solution.mat'),'phaseFieldSolution');    

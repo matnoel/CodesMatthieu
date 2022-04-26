@@ -9,14 +9,14 @@ close all
 
 postTraitement = true;
 
-test = true;
-% test = false;
+% test = true;
+test = false;
 
 if postTraitement
     setPFM = false;
     solve = false;
     plotResults = true;
-    saveParaview = true;
+    saveParaview = false;
     makeMovie = false;
 else
     setPFM = true;

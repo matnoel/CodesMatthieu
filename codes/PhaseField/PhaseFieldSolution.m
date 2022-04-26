@@ -40,19 +40,21 @@ classdef PhaseFieldSolution
             ep = getparam(mat,'DIM3');
             
             dept = abs(obj.udt*coef);
-            forcet = abs(obj.ft/1e3);
+            forcet = abs(obj.ft/1e6);
 
             figure
             plot(dept,forcet,'LineWidth',1)
             grid on
             if unite == "µm"
-                ytitle = "Displacement in $\mu m$";
+                ytitle = "Displacement in $\mu$m";
+%                 ytitle = "D\'eplacement en $\mu$m";
             else
                 ytitle = "Displacement in $"+unite+"$";
             end
             
             xlabel(ytitle,'interpreter','Latex','fontsize',15)
-            ylabel("Load in kN",'interpreter','Latex','fontsize',15)
+            ylabel("Load in kN/mm",'interpreter','Latex','fontsize',15)
+%             ylabel("Force de compression en kN/mm",'interpreter','Latex','fontsize',15)
             
             saveas(gcf, fullfile(pathname, 'displacement.png'))
             
