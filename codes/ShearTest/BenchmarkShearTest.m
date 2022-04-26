@@ -174,7 +174,7 @@ end
 %% Save solutions
 
 if plotResults
-    phaseFieldSolution.PlotResults(pathname);
+    phaseFieldSolution.PlotResults(pathname,"mm");
 end
 
 if saveParaview   

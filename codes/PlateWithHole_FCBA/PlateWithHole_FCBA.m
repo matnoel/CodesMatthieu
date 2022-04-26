@@ -182,7 +182,7 @@ if setPFM
 %         inc1 = 4e-8;
 %     end    
 
-    umax = 3e-3;
+    umax = 3e-3; % 3mm
     Ninc = 400;
     inc0 = umax/Ninc; %[m] step d<=0.6
     inc1 = inc0/3; % step d>0.6
